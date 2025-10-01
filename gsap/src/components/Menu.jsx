@@ -7,6 +7,7 @@ import gsap from 'gsap';
 
 const Menu = () => {
  const contentRef = useRef();
+ const cocktailImageRef = useRef();
  const [currentIndex, setCurrentIndex] = useState(0);
  
  useGSAP(() => {
@@ -20,6 +21,46 @@ const Menu = () => {
 	gsap.fromTo('.details p', { yPercent: 100, opacity: 0 }, {
 	 yPercent: 0, opacity: 100, ease: 'power1.inOut'
 	})
+
+	// Add 3D tilt effect to cocktail image
+	const cocktailImg = cocktailImageRef.current;
+	if (cocktailImg) {
+		const handleMouseMove = (e) => {
+			const rect = cocktailImg.getBoundingClientRect();
+			const x = e.clientX - rect.left;
+			const y = e.clientY - rect.top;
+			const centerX = rect.width / 2;
+			const centerY = rect.height / 2;
+			
+			const rotateX = (y - centerY) / centerY * -15;
+			const rotateY = (x - centerX) / centerX * 15;
+			
+			gsap.to(cocktailImg, {
+				rotationX: rotateX,
+				rotationY: rotateY,
+				transformPerspective: 1000,
+				duration: 0.3,
+				ease: 'power2.out'
+			});
+		};
+
+		const handleMouseLeave = () => {
+			gsap.to(cocktailImg, {
+				rotationX: 0,
+				rotationY: 0,
+				duration: 0.5,
+				ease: 'power2.out'
+			});
+		};
+
+		cocktailImg.addEventListener('mousemove', handleMouseMove);
+		cocktailImg.addEventListener('mouseleave', handleMouseLeave);
+
+		return () => {
+			cocktailImg.removeEventListener('mousemove', handleMouseMove);
+			cocktailImg.removeEventListener('mouseleave', handleMouseLeave);
+		};
+	}
  }, [currentIndex]);
  
  const totalCocktails = allCocktails.length;
@@ -78,7 +119,12 @@ const Menu = () => {
 		</div>
 		
 		<div className="cocktail">
-		 <img src={currentCocktail.image} className="object-contain"/>
+		 <img 
+		 	ref={cocktailImageRef}
+		 	src={currentCocktail.image} 
+		 	className="object-contain cursor-pointer transition-transform duration-300 hover:scale-105"
+		 	style={{ filter: 'drop-shadow(0 20px 40px rgba(231, 211, 147, 0.3))' }}
+		 />
 		</div>
 		
 		<div className="recipe">
